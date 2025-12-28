@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 public class UIManager : MonoBehaviour
@@ -8,6 +9,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject gameRuleUISet;
     [SerializeField] private GameObject instructMouseUISet;
     [SerializeField] private GameObject instructWiiControllerUISet;
+    [SerializeField] private GameObject inGameUISet;
+    [SerializeField] private TMP_Text scoreText;
+    [SerializeField] private TMP_Text timeText;
 
     public void init()
     {
@@ -15,6 +19,7 @@ public class UIManager : MonoBehaviour
         gameRuleUISet.SetActive(false);
         instructMouseUISet.SetActive(false);
         instructWiiControllerUISet.SetActive(false);
+        inGameUISet.SetActive(false);
     }
 
     public void TitleUI(bool index)
@@ -33,8 +38,13 @@ public class UIManager : MonoBehaviour
     {
         instructWiiControllerUISet.SetActive(index);
     }
+    public void InGameUI(bool index)
+    {
+        inGameUISet.SetActive(index);
+        Debug.Log("スコアはまだ反映されません。");
+    }
 
-    //各ボタンを押した際の処理
+    ///各ボタンを押した際の処理
     public void onClickNext(int NextStep)
     {
         //すべてのUIを非表示に
@@ -59,22 +69,29 @@ public class UIManager : MonoBehaviour
                 break;
             case 20://操作説明画面
                 if (gameManager.deviceType == Enum.DeviceType.Mouse)
-                {
                     InstructMouseUI(true);
-                }
                 else
-                {
                     InstructWiiControllerUI(true);
-                }
                 break;
             case 30://ゲーム開始の呼び出し
-                Debug.Log("ここまでで一旦停止！");
-                //gameManager.PrepareGame();
+                gameManager.PrepareGame();
                 break;
             default:
                 Debug.LogErrorFormat("UIManager:onClickNext:Invalid NextStep. {0}",NextStep);
                 break;
         }
+    }
+
+    public void UpdateScore(int score)
+    {
+        scoreText.text = "スコア: " + score.ToString();
+    }
+
+    public void UpdateTime(float time)
+    {
+        int minutes = (int)(time / 60);
+        float seconds = (float)(time % 60);
+        timeText.text = string.Format("タイム: {0:00}:{1:00.00}", minutes, seconds);
     }
 
 }

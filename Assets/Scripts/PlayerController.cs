@@ -4,45 +4,64 @@ using WiimoteApi;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] IgaguriGenerator _igaguriGenerator;
+    [SerializeField] IgaguriGenerator igaguriGenerator;
+    [SerializeField] GameManager gameManager;
     [SerializeField] private Transform cameraBody;
 
-    private Wiimote wiimote;
+    private Wiimote wiimote = null;
     private bool oldFrame_isPressed_A_Button = false;
+    [NonSerialized] public bool isShootEnable = false;
 
     void FixedUpdate()
     {
-        // リモコンが接続されていない場合は検索
-        if (!WiimoteManager.HasWiimote())
+        if(gameManager.deviceType == Enum.DeviceType.WiiController)
         {
-            WiimoteManager.FindWiimotes();
-            return;
-        }
+            // リモコンが接続されていない場合は検索
+            if (!WiimoteManager.HasWiimote())
+            {
+                WiimoteManager.FindWiimotes();
+                return;
+            }
 
-        wiimote = WiimoteManager.Wiimotes[0];
+            wiimote = WiimoteManager.Wiimotes[0];
 
-        // データの読み取り（毎フレーム必要）
-        int ret;
-        do
-        {
-            ret = wiimote.ReadWiimoteData();
-        } while (ret > 0);
-
-        //マウス左クリック || WiiリモコンAボタンでいがぐり発射
-        if (Input.GetMouseButtonDown(0) || wiimote.Button.a)
-        {
-            if (oldFrame_isPressed_A_Button) return;
-            oldFrame_isPressed_A_Button = true;
-            GameObject igaguri = _igaguriGenerator.GenerateIgaguri();
-            igaguri.transform.localPosition = transform.position;
-            igaguri.GetComponent<IgaguriController>().Shoot(cameraBody.forward);
-        }
-        else
-        {
-             oldFrame_isPressed_A_Button = false;
-        }
-
+            // データの読み取り（毎フレーム必要）
+            int ret;
+            do
+            {
+                ret = wiimote.ReadWiimoteData();
+            } while (ret > 0);
             // WiiリモコンLEDの制御（例：1番目のLEDを点灯）
             wiimote.SendPlayerLED(true, false, false, false);
+            if(isShootEnable && wiimote.Button.a)
+                Shoot();
+            else
+                oldFrame_isPressed_A_Button = false;
+        }
+
+        //マウス左クリック || WiiリモコンAボタンでいがぐり発射
+        if (isShootEnable && Input.GetMouseButtonDown(0))
+            Shoot();
+        else
+            oldFrame_isPressed_A_Button = false;
     }
+
+    private void Shoot()
+    {
+        if(oldFrame_isPressed_A_Button) return;
+        oldFrame_isPressed_A_Button = true;
+        GameObject igaguri = igaguriGenerator.GenerateIgaguri();
+        igaguri.transform.localPosition = transform.position;
+        igaguri.GetComponent<IgaguriController>().Shoot(cameraBody.forward);
+    }
+
+    //private void OnApplicationQuit()
+    //{
+    //    // Wiiリモコンの接続解除
+    //    if (wiimote != null)
+    //    {
+    //        wiimote.Disconnect();
+    //    }
+    //    WiimoteManager.Cleanup(wiimote);
+    //}
 }

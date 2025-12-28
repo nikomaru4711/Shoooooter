@@ -26,20 +26,14 @@ public class IgaguriController : MonoBehaviour
         }
 
         float distance = (collision.contacts[0].point - Camera.main.transform.position).magnitude;
-        Debug.LogFormat("Collision distance: {0}", distance);
         if (!onGround && distance < 40.0f)
         {
-            audioManager.PlaySound(collideSound, 0.4f);
+            audioManager.PlaySound(collideSound, 0.15f);
             if(collision.gameObject.tag == "ground")
             {
                 onGround = true;
             }
         }
+        Destroy(gameObject, 20f);
     }
-    private void Start()
-    {
-        Application.targetFrameRate = 60;
-    }
-
-
 }
