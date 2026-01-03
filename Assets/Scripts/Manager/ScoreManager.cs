@@ -1,9 +1,10 @@
+using System;
 using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
 {
     [SerializeField] private UIManager uiManager;
-    private int score = 0;
+    [NonSerialized] public int score = 0;
 
     public void init()
     {

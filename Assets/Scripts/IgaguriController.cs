@@ -2,15 +2,22 @@ using UnityEngine;
 
 public class IgaguriController : MonoBehaviour
 {
-    [SerializeField] private AudioManager audioManager;
+    private AudioManager audioManager;
     public AudioClip collideSound;
     private bool isTouched = false;
     private bool onGround = false;
+    [SerializeField] private bool isAmmo = false;
 
     //いがぐりを発射する。dirは単位ベクトルで与える
     public void Shoot(Vector3 dir)
     {
-        GetComponent<Rigidbody>().AddForce(dir * 500);
+        if (isAmmo)
+        {
+            GetComponent<Rigidbody>().AddForce(dir * 10000);
+        } else
+        {
+            GetComponent<Rigidbody>().AddForce(dir * 500);
+        }
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -21,8 +28,11 @@ public class IgaguriController : MonoBehaviour
 
         if (!isTouched && collision.gameObject.tag == "prize")
         {
-            GetComponent<ParticleSystem>().Play();
-            isTouched = true;
+            if(GetComponent<ParticleSystem>() != null)
+            {
+                GetComponent<ParticleSystem>().Play();
+                isTouched = true;
+            }
         }
 
         float distance = (collision.contacts[0].point - Camera.main.transform.position).magnitude;

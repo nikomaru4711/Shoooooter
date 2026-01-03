@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -8,10 +10,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private CameraController cameraController;
     [SerializeField] private PlayerController playerController;
     [SerializeField] private AudioClip startCountdownSound;
+    [SerializeField] private AudioClip endGameSound;
 
-    public Enum.DeviceType deviceType = Enum.DeviceType.None;
+    [NonSerialized] public Enum.DeviceType deviceType = Enum.DeviceType.None;
     private bool isGameStart = false;
     private float time = 0.0f;
+    private bool isPause = false;
 
     void Start()
     {
@@ -23,8 +27,39 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         if (isGameStart)
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (isPause)
+                {//Resume
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Time.timeScale = 1.0f;
+                    isPause = false;
+                    uiManager.PauseUI(false);
+                }
+                else
+                {//Pause
+                    Cursor.lockState = CursorLockMode.None;
+                    Time.timeScale = 0f;
+                    isPause = true;
+                    uiManager.PauseUI(true);
+                }
+            }
             time += Time.deltaTime;
-        uiManager.UpdateTime(time);
+            uiManager.UpdateTime(time);
+            if (scoreManager.score >= 200)
+            {//200点を越えたら
+                 //ゲーム終了
+                 isGameStart = false;
+                //ゲーム終了SE再生
+                audioManager.PlaySound(endGameSound, 0.2f);
+                //UIで結果表示
+                uiManager.ShowScore(time, playerController.shootedIgaguriCount, playerController.shootedBulletCount);
+                Cursor.lockState = CursorLockMode.None;
+                cameraController.isMoveEnabled = false;
+                playerController.isShootEnable = false;
+            }
+        }
     }
 
     public void PrepareGame()
@@ -57,5 +92,20 @@ public class GameManager : MonoBehaviour
     public void SetDeviceType(Enum.DeviceType type)
     {
         deviceType = type;
+    }
+
+    public void Resume()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Time.timeScale = 1.0f;
+        isPause = false;
+        uiManager.PauseUI(false);
+    }
+
+    public void ReloadGame()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Time.timeScale = 1.0f;
+        SceneManager.LoadScene("Game");
     }
 }
